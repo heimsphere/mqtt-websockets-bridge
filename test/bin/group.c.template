@@ -1,0 +1,23 @@
+#include "unity_fixture.h" 
+#include <stdio.h>
+
+TEST_GROUP(<GROUP>);
+
+TEST_SETUP(<GROUP>)
+{
+
+}
+
+TEST_TEAR_DOWN(<GROUP>)
+{
+
+}
+
+TEST(<GROUP>, TestCase1) {
+	TEST_ASSERT_TRUE(0);
+}
+ 
+TEST_GROUP_RUNNER(<GROUP>)
+{ 
+    RUN_TEST_CASE(<GROUP>, TestCase1);
+}
