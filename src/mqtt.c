@@ -5,29 +5,34 @@ my_message_callback(struct mosquitto *mosq, void *userdata,
     const struct mosquitto_message *message)
 {
   if (message->payloadlen)
-  {
-      llog(LOG_INFO, "Received message %s : %s\n", message->topic, message->payload);
-      Subscription *subscription = subscription_get(&SUBSCRIPTIONS, message->topic);
+    {
+      llog(LOG_INFO, "Received message %s : %s\n", message->topic,
+          message->payload);
+      Subscription *subscription = subscription_get(&SUBSCRIPTIONS,
+          message->topic);
 
       if (subscription)
-      {
-      	int i;
-		int count =subscription->count_subscribed;
-		llog(LOG_INFO, "Notify %d lws clients for topic %s\n", count, message->topic);
-		for(i = 0; i < count; i++) {
-			struct libwebsocket *wsi = subscription->subscribers[i];
-			libwebsocket_callback_on_writable(WEBSOCKETS, wsi);
-		}
-      }
+        {
+          int i;
+          int count = subscription->count_subscribed;
+          llog(LOG_INFO, "Notify %d lws clients for topic %s\n", count,
+              message->topic);
+          for (i = 0; i < count; i++)
+            {
+              struct libwebsocket *wsi = subscription->subscribers[i];
+              libwebsocket_callback_on_writable(WEBSOCKETS, wsi);
+            }
+        }
       else
-      {
-      	llog(LOG_ERR, "No lws clients are subscribed to topic %s\n", message->topic);
-      }
-  }
+        {
+          llog(LOG_ERR, "No lws clients are subscribed to topic %s\n",
+              message->topic);
+        }
+    }
   else
-  {
-    printf("%s (null)\n", message->topic);
-  }
+    {
+      printf("%s (null)\n", message->topic);
+    }
 }
 
 void

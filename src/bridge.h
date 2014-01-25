@@ -53,7 +53,8 @@ enum demo_protocols
 
 #define TOPIC_MAX_SUBSCRIBERS 100
 
-typedef struct subscription_t {
+typedef struct subscription_t
+{
   char *topic;
   struct libwebsocket *subscribers[TOPIC_MAX_SUBSCRIBERS];
   int count_subscribed;
@@ -61,9 +62,10 @@ typedef struct subscription_t {
   struct subscription_t *prev;
 } Subscription;
 
-typedef struct {
-   Subscription *first;
-   Subscription *last;
+typedef struct
+{
+  Subscription *first;
+  Subscription *last;
 } Subscriptions;
 
 // FIXME do not declare it globally
@@ -71,7 +73,14 @@ extern struct mosquitto *MOSQUITTO;
 extern Subscriptions SUBSCRIPTIONS;
 extern struct libwebsocket_context *WEBSOCKETS;
 
-bool subscribe(Subscriptions *subscriptions, char *topic, struct libwebsocket *subscriber);
-bool unsubscribe(Subscriptions *subscriptions, char *topic, struct libwebsocket *subscriber);
-bool subscribed_to(Subscriptions *subscriptions, char *topic, struct libwebsocket *subscriber);
-Subscription *subscription_get(Subscriptions *subscribers, char *topic);
+bool
+subscribe(Subscriptions *subscriptions, char *topic,
+    struct libwebsocket *subscriber);
+bool
+unsubscribe(Subscriptions *subscriptions, char *topic,
+    struct libwebsocket *subscriber);
+bool
+subscribed_to(Subscriptions *subscriptions, char *topic,
+    struct libwebsocket *subscriber);
+Subscription *
+subscription_get(Subscriptions *subscribers, char *topic);

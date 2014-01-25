@@ -614,11 +614,12 @@ callback_lws_mqtt_bridge(struct libwebsocket_context *context,
 
     /* subscribe to the message */
     // TODO remember the the subsciption so we can dispatch messages to the client
-    if (subscribe(&SUBSCRIPTIONS, (char *) in, wsi)) {
-    	lwsl_notice("Client subscribed to topic %s\n", (char*) in);
-    	// FIXME don't subscribe again if already subscribed
-    	mosquitto_subscribe(MOSQUITTO, NULL, (char*) in, 0);
-    }
+    if (subscribe(&SUBSCRIPTIONS, (char *) in, wsi))
+      {
+        lwsl_notice("Client subscribed to topic %s\n", (char* ) in);
+        // FIXME don't subscribe again if already subscribed
+        mosquitto_subscribe(MOSQUITTO, NULL, (char*) in, 0);
+      }
 
     break;
 

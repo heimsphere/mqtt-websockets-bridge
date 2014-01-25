@@ -64,7 +64,7 @@ subscription_add_subscriber(Subscription *sub, struct libwebsocket *subscriber)
   if (sub->count_subscribed == TOPIC_MAX_SUBSCRIBERS)
     {
       llog(LOG_ERR, "Maximum subscribers %d reached for topic: %s\n",
-          TOPIC_MAX_SUBSCRIBERS, sub->topic);
+      TOPIC_MAX_SUBSCRIBERS, sub->topic);
       return false;
     }
   else
@@ -103,13 +103,14 @@ subscription_remove_subscriber(Subscription *sub,
  * @return true if given subscriber subscribed to given description
  */
 bool
-subscribed_to(Subscriptions *subscriptions, char *topic, struct libwebsocket *subscriber)
+subscribed_to(Subscriptions *subscriptions, char *topic,
+    struct libwebsocket *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
   if (sub)
     {
       int i;
-      for (i = 0; sub->count_subscribed-1; i++)
+      for (i = 0; sub->count_subscribed - 1; i++)
         {
           if (sub->subscribers[i] == subscriber)
             return true;
@@ -119,17 +120,19 @@ subscribed_to(Subscriptions *subscriptions, char *topic, struct libwebsocket *su
 }
 
 bool
-subscribe(Subscriptions *subscriptions, char *topic, struct libwebsocket *subscriber)
+subscribe(Subscriptions *subscriptions, char *topic,
+    struct libwebsocket *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
   if (!sub)
-      sub = subscription_new(subscriptions, topic);
+    sub = subscription_new(subscriptions, topic);
 
   return subscription_add_subscriber(sub, subscriber);
 }
 
 bool
-unsubscribe(Subscriptions *subscriptions, char *topic, struct libwebsocket *subscriber)
+unsubscribe(Subscriptions *subscriptions, char *topic,
+    struct libwebsocket *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
   if (!sub)
