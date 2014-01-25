@@ -1,11 +1,13 @@
-TESTS=$(shell ls test_*.c | cut -d'.' -f1 | cut -d'_' -f2)
+TESTS=$(shell ls test_*.c | cut -d'.' -f1 | sed 's/^test_//')
 OUT=.run_tests
 TEMPLATE=bin/group.c.template
 UNITY_SRC=https://codeload.github.com/ThrowTheSwitch/Unity/zip/master
+SRC=variable_scope.c
 
 LIBWS_PATH=`brew --prefix libwebsockets`
 LIBEV_PATH=`brew --prefix libev`
 MOSQUITTO_PATH=`brew --prefix mosquitto`
+JANSSON_PATH=`brew --prefix jansson`
 
 CFLAGS=-Wall -Wp -w -g -I./unity -I../src -DTEST
 # Specify your preferred editor which should open a new test file/group.
@@ -13,7 +15,7 @@ CFLAGS=-Wall -Wp -w -g -I./unity -I../src -DTEST
 OPEN_IN_EDITOR=true
 
 # Execute test runner after compilation
-default: assemble compile
+default: compile
 	./$(OUT)
 
 clean:
@@ -32,12 +34,13 @@ assemble:
 	./bin/assemble_groups.sh $(TESTS) > $(OUT).c
 
 # Compiles the test runner created by `assemble`
-compile:
+compile: assemble
 	gcc $(CFLAGS) \
-	unity/unity.c unity/unity_fixture.c -o $(OUT) \
+	unity/unity.c unity/unity_fixture.c $(SRC) -o $(OUT) \
 	$(foreach var,$(TESTS), test_$(var).c) $(OUT).c \
 	-I$(LIBWS_PATH)/include/ -L$(LIBWS_PATH)/lib -lwebsockets \
-	-I$(MOSQUITTO_PATH)/include/ -L$(MOSQUITTO_PATH)/lib -lmosquitto
+	-I$(MOSQUITTO_PATH)/include/ -L$(MOSQUITTO_PATH)/lib -lmosquitto \
+	-I$(JANSSON_PATH)/include/ -L$(JANSSON_PATH)/lib -ljansson
 
 # Creates a new TEST_GROUP `test_<name>.c` from $(TEMPLATE)
 # @param[name] : the TEST_GROUP name

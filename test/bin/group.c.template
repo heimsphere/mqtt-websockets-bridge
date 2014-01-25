@@ -13,7 +13,8 @@ TEST_TEAR_DOWN(<GROUP>)
 
 }
 
-TEST(<GROUP>, TestCase1) {
+TEST(<GROUP>, TestCase1)
+{
 	TEST_ASSERT_TRUE(0);
 }
  
