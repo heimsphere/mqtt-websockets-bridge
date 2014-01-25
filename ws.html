@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<div id="msgArea"></div>
+</body>
+<script>
+    var socket = new WebSocket('ws://127.0.0.1:8080/', ['mqtt-bridge-protocol']);
+//    var socket = new WebSocket('ws://127.0.0.1:7681/', ['dumb-increment-protocol']);
+
+    function sendMessage(socket, message) {
+        console.log("sending message: " + message);
+        socket.send(message);
+    }
+
+    socket.onopen = function () {
+        sendMessage(socket, '/foo/bar');
+    };
+
+    socket.onmessage = function (event) {
+        console.log(event.data);
+    };
+
+</script>
+</html>
