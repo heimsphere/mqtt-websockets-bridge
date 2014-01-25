@@ -57,7 +57,7 @@ subscription_get(Subscriptions *subscribers, char *topic)
  * @return true if subscriber was added
  */
 bool
-subscription_add_subscriber(Subscription *sub, struct libwebsocket *subscriber)
+subscription_add_subscriber(Subscription *sub, void *subscriber)
 {
   assert(sub);
 
@@ -80,7 +80,7 @@ subscription_add_subscriber(Subscription *sub, struct libwebsocket *subscriber)
  */
 bool
 subscription_remove_subscriber(Subscription *sub,
-    struct libwebsocket *subscriber, bool remove_if_empty)
+    void *subscriber, bool remove_if_empty)
 {
   assert(sub);
   int i;
@@ -104,7 +104,7 @@ subscription_remove_subscriber(Subscription *sub,
  */
 bool
 subscribed_to(Subscriptions *subscriptions, char *topic,
-    struct libwebsocket *subscriber)
+    void *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
   if (sub)
@@ -121,7 +121,7 @@ subscribed_to(Subscriptions *subscriptions, char *topic,
 
 bool
 subscribe(Subscriptions *subscriptions, char *topic,
-    struct libwebsocket *subscriber)
+    void *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
   if (!sub)
@@ -132,7 +132,7 @@ subscribe(Subscriptions *subscriptions, char *topic,
 
 bool
 unsubscribe(Subscriptions *subscriptions, char *topic,
-    struct libwebsocket *subscriber)
+    void *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
   if (!sub)

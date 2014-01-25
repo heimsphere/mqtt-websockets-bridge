@@ -56,7 +56,7 @@ enum demo_protocols
 typedef struct subscription_t
 {
   char *topic;
-  struct libwebsocket *subscribers[TOPIC_MAX_SUBSCRIBERS];
+  void *subscribers[TOPIC_MAX_SUBSCRIBERS];
   int count_subscribed;
   struct subscription_t *next;
   struct subscription_t *prev;
@@ -75,12 +75,12 @@ extern struct libwebsocket_context *WEBSOCKETS;
 
 bool
 subscribe(Subscriptions *subscriptions, char *topic,
-    struct libwebsocket *subscriber);
+    void *subscriber);
 bool
 unsubscribe(Subscriptions *subscriptions, char *topic,
-    struct libwebsocket *subscriber);
+    void *subscriber);
 bool
 subscribed_to(Subscriptions *subscriptions, char *topic,
-    struct libwebsocket *subscriber);
+    void *subscriber);
 Subscription *
 subscription_get(Subscriptions *subscribers, char *topic);
