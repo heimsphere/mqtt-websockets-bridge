@@ -1,29 +1,4 @@
 #include "bridge.h"
-
-/*
- * libwebsockets-test-server - libwebsockets test implementation
- *
- * Copyright (C) 2010-2011 Andy Green <andy@warmcat.com>
- *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation:
- *  version 2.1 of the License.
- *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- *  MA  02110-1301  USA
- */
-#ifdef CMAKE_BUILD
-#include <lws_config.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -33,49 +8,17 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <assert.h>
-#ifdef WIN32
-
-#ifdef EXTERNAL_POLL
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <stddef.h>
-
-#include "websock-w32.h"
-#endif
-
-#else // NOT WIN32
 #include <syslog.h>
-#endif
-
 #include <signal.h>
 
 #include <libwebsockets.h>
 
-static int close_testing;
 int max_poll_elements;
 
 struct pollfd *pollfds;
 int *fd_lookup;
 int count_pollfds;
 int force_exit = 0;
-
-/*
- * This demo server shows how to use libwebsockets for one or more
- * websocket protocols in the same server
- *
- * It defines the following websocket protocols:
- *
- *  dumb-increment-protocol:  once the socket is opened, an incrementing
- *				ascii string is sent down it every 50ms.
- *				If you send "reset\n" on the websocket, then
- *				the incrementing number is reset to 0.
- *
- *  lws-mirror-protocol: copies any received packet to every connection also
- *				using this protocol, including the sender
- */
 
 #define LOCAL_RESOURCE_PATH INSTALL_DATADIR "/libwebsockets-test-server"
 char *resource_path = LOCAL_RESOURCE_PATH;
@@ -139,12 +82,7 @@ callback_http(struct libwebsocket_context *context, struct libwebsocket *wsi,
         /* well, let's demonstrate how to send the hard way */
 
         p = buffer;
-
-#ifdef WIN32
-        pss->fd = open(leaf_path, O_RDONLY | _O_BINARY);
-#else
         pss->fd = open(leaf_path, O_RDONLY);
-#endif
 
         if (pss->fd < 0)
           return -1;
@@ -355,224 +293,6 @@ dump_handshake_info(struct libwebsocket *wsi)
     }
 }
 
-/* dumb_increment protocol */
-
-/*
- * one of these is auto-created for each connection and a pointer to the
- * appropriate instance is passed to the callback in the user parameter
- *
- * for this example protocol we use it to individualize the count for each
- * connection.
- */
-
-struct per_session_data__dumb_increment
-{
-  int number;
-};
-
-static int
-callback_dumb_increment(struct libwebsocket_context *context,
-    struct libwebsocket *wsi, enum libwebsocket_callback_reasons reason,
-    void *user, void *in, size_t len)
-{
-  int n, m;
-  unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + 512 +
-  LWS_SEND_BUFFER_POST_PADDING];
-  unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
-  struct per_session_data__dumb_increment *pss =
-      (struct per_session_data__dumb_increment *) user;
-
-  switch (reason)
-    {
-
-  case LWS_CALLBACK_ESTABLISHED:
-    lwsl_info("callback_dumb_increment: "
-        "LWS_CALLBACK_ESTABLISHED\n");
-    pss->number = 0;
-    break;
-
-  case LWS_CALLBACK_SERVER_WRITEABLE:
-    n = sprintf((char* )p, "%d", pss->number++);
-    m = libwebsocket_write(wsi, p, n, LWS_WRITE_TEXT);
-    if (m < n)
-      {
-        lwsl_err("ERROR %d writing to di socket\n", n);
-        return -1;
-      }
-    if (close_testing && pss->number == 50)
-      {
-        lwsl_info("close tesing limit, closing\n");
-        return -1;
-      }
-    break;
-
-  case LWS_CALLBACK_RECEIVE:
-//		fprintf(stderr, "rx %d\n", (int)len);
-    if (len < 6)
-      break;
-    if (strcmp((const char*) in, "reset\n") == 0)
-      pss->number = 0;
-    break;
-    /*
-     * this just demonstrates how to use the protocol filter. If you won't
-     * study and reject connections based on header content, you don't need
-     * to handle this callback
-     */
-
-  case LWS_CALLBACK_FILTER_PROTOCOL_CONNECTION:
-    dump_handshake_info(wsi);
-    /* you could return non-zero here and kill the connection */
-    break;
-
-  default:
-    break;
-    }
-
-  return 0;
-}
-
-/* lws-mirror_protocol */
-
-#define MAX_MESSAGE_QUEUE 32
-
-struct per_session_data__lws_mirror
-{
-  struct libwebsocket *wsi;
-  int ringbuffer_tail;
-};
-
-struct a_message
-{
-  void *payload;
-  size_t len;
-};
-
-static struct a_message ringbuffer[MAX_MESSAGE_QUEUE];
-static int ringbuffer_head;
-
-static int
-callback_lws_mirror(struct libwebsocket_context *context,
-    struct libwebsocket *wsi, enum libwebsocket_callback_reasons reason,
-    void *user, void *in, size_t len)
-{
-  int n;
-  struct per_session_data__lws_mirror *pss =
-      (struct per_session_data__lws_mirror *) user;
-
-  switch (reason)
-    {
-
-  case LWS_CALLBACK_ESTABLISHED:
-    lwsl_info("callback_lws_mirror: LWS_CALLBACK_ESTABLISHED\n");
-    pss->ringbuffer_tail = ringbuffer_head;
-    pss->wsi = wsi;
-    break;
-
-  case LWS_CALLBACK_PROTOCOL_DESTROY:
-    lwsl_notice("mirror protocol cleaning up\n");
-    for (n = 0; n < sizeof ringbuffer / sizeof ringbuffer[0]; n++)
-      if (ringbuffer[n].payload)
-        free(ringbuffer[n].payload);
-    break;
-
-  case LWS_CALLBACK_SERVER_WRITEABLE:
-    if (close_testing)
-      break;
-    while (pss->ringbuffer_tail != ringbuffer_head)
-      {
-
-        n = libwebsocket_write(wsi,
-            (unsigned char*) ringbuffer[pss->ringbuffer_tail].payload +
-            LWS_SEND_BUFFER_PRE_PADDING, ringbuffer[pss->ringbuffer_tail].len,
-            LWS_WRITE_TEXT);
-        if (n < ringbuffer[pss->ringbuffer_tail].len)
-          {
-            lwsl_err("ERROR %d writing to mirror socket\n", n);
-            return -1;
-          }
-        if (n < ringbuffer[pss->ringbuffer_tail].len)
-          lwsl_err("mirror partial write %d vs %d\n", n,
-              ringbuffer[pss->ringbuffer_tail].len);
-
-        if (pss->ringbuffer_tail == (MAX_MESSAGE_QUEUE - 1))
-          pss->ringbuffer_tail = 0;
-        else
-          pss->ringbuffer_tail++;
-
-        if (((ringbuffer_head - pss->ringbuffer_tail) & (MAX_MESSAGE_QUEUE - 1))
-            == (MAX_MESSAGE_QUEUE - 15))
-          libwebsocket_rx_flow_allow_all_protocol(
-              libwebsockets_get_protocol(wsi));
-
-        // lwsl_debug("tx fifo %d\n", (ringbuffer_head - pss->ringbuffer_tail) & (MAX_MESSAGE_QUEUE - 1));
-
-        if (lws_send_pipe_choked(wsi))
-          {
-            libwebsocket_callback_on_writable(context, wsi);
-            break;
-          }
-        /*
-         * for tests with chrome on same machine as client and
-         * server, this is needed to stop chrome choking
-         */
-        usleep(1);
-      }
-    break;
-
-  case LWS_CALLBACK_RECEIVE:
-
-    if (((ringbuffer_head - pss->ringbuffer_tail) & (MAX_MESSAGE_QUEUE - 1))
-        == (MAX_MESSAGE_QUEUE - 1))
-      {
-        lwsl_err("dropping!\n");
-        goto choke;
-      }
-
-    if (ringbuffer[ringbuffer_head].payload)
-      free(ringbuffer[ringbuffer_head].payload);
-
-    ringbuffer[ringbuffer_head].payload = malloc(
-    LWS_SEND_BUFFER_PRE_PADDING + len +
-    LWS_SEND_BUFFER_POST_PADDING);
-    ringbuffer[ringbuffer_head].len = len;
-    memcpy(
-        (char*)ringbuffer[ringbuffer_head].payload + LWS_SEND_BUFFER_PRE_PADDING,
-        in, len);
-    if (ringbuffer_head == (MAX_MESSAGE_QUEUE - 1))
-      ringbuffer_head = 0;
-    else
-      ringbuffer_head++;
-
-    if (((ringbuffer_head - pss->ringbuffer_tail) & (MAX_MESSAGE_QUEUE - 1))
-        != (MAX_MESSAGE_QUEUE - 2))
-      goto done;
-
-    choke: lwsl_debug("LWS_CALLBACK_RECEIVE: throttling %p\n", wsi);
-    libwebsocket_rx_flow_control(wsi, 0);
-
-//		lwsl_debug("rx fifo %d\n", (ringbuffer_head - pss->ringbuffer_tail) & (MAX_MESSAGE_QUEUE - 1));
-    done: libwebsocket_callback_on_writable_all_protocol(
-        libwebsockets_get_protocol(wsi));
-    break;
-
-    /*
-     * this just demonstrates how to use the protocol filter. If you won't
-     * study and reject connections based on header content, you don't need
-     * to handle this callback
-     */
-
-  case LWS_CALLBACK_FILTER_PROTOCOL_CONNECTION:
-    dump_handshake_info(wsi);
-    /* you could return non-zero here and kill the connection */
-    break;
-
-  default:
-    break;
-    }
-
-  return 0;
-}
-
 /* MQTT bridge protocol */
 
 static int
@@ -652,10 +372,6 @@ struct libwebsocket_protocols protocols[] =
     sizeof(struct per_session_data__http), /* per_session_data_size */
     0, /* max frame size / rx buffer */
     },
-    { "dumb-increment-protocol", callback_dumb_increment,
-        sizeof(struct per_session_data__dumb_increment), 10, },
-    { "lws-mirror-protocol", callback_lws_mirror,
-        sizeof(struct per_session_data__lws_mirror), 128, },
     { "mqtt-bridge-protocol", callback_lws_mqtt_bridge,
         0, 128, },
     { NULL, NULL, 0, 0 } /* terminator */

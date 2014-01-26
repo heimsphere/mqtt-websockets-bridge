@@ -1,9 +1,3 @@
-/*
- * subscriber.c
- *
- *  Created on: 24.01.2014
- *      Author: ruben
- */
 #include "bridge.h"
 
 Subscription *

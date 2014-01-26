@@ -43,25 +43,12 @@ main(const int argc, const char *argv[])
       /* TODO if this is a connection error try to reconnect */
     }
 
-  llog(LOG_DEBUG, "Starting server\n");
+  llog(LOG_INFO, "Starting server\n");
 
-  int n = 0;
   for (;;)
     {
-      struct timeval tv;
-      gettimeofday(&tv, NULL);
-
-      /*
-       * This provokes the LWS_CALLBACK_SERVER_WRITEABLE for every
-       * live websocket connection using the DUMB_INCREMENT protocol,
-       * as soon as it can take more packets (usually immediately)
-       */
-
-//              if (((unsigned int)tv.tv_usec - oldus) > 50000) {
-//                      libwebsocket_callback_on_writable_all_protocol(&protocols[PROTOCOL_DUMB_INCREMENT]);
-//                      oldus = tv.tv_usec;
-//              }
 #ifdef EXTERNAL_POLL
+      int n = 0;
       /*
        * this represents an existing server's single poll action
        * which also includes libwebsocket sockets
