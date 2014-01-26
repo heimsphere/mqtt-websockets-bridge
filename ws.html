@@ -4,9 +4,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
-<div id="msgArea"></div>
 </body>
 <script>
+	var counter = 0;
     var socket = new WebSocket('ws://127.0.0.1:8080/', ['mqtt-bridge-protocol']);
 //    var socket = new WebSocket('ws://127.0.0.1:7681/', ['dumb-increment-protocol']);
 
@@ -15,12 +15,17 @@
         socket.send(message);
     }
 
+	// TODO reloading the browser should unsubscribe the client
     socket.onopen = function () {
-        sendMessage(socket, '/foo/bar');
+    	//for(var i = 0; i < 100; i++) {
+        	sendMessage(socket, '/foo/bar');
+        //}
     };
 
     socket.onmessage = function (event) {
+    	document.body.innerHTML += '<p>' + counter + " : " + event.data + '</p>';
         console.log(event.data);
+        counter++;
     };
 
 </script>

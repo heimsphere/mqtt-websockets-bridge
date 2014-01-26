@@ -14,6 +14,8 @@ main(const int argc, const char *argv[])
 
   llog_init();
 
+  subscriptions_new(&SUBSCRIPTIONS);
+
 #ifdef EXTERNAL_POLL
   max_poll_elements = getdtablesize();
   pollfds = malloc(max_poll_elements * sizeof(struct pollfd));
@@ -92,5 +94,6 @@ main(const int argc, const char *argv[])
   lwsl_notice("Server Shutdown down\n");
   mosquitto_destroy(MOSQUITTO);
   mosquitto_lib_cleanup();
+  subscriptions_destroy(&SUBSCRIPTIONS);
   return 0;
 }

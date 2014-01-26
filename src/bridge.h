@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <sys/time.h> /* gettimeofday */
 #include <stdbool.h>
+#include "subscriber.h"
 
 /* mqtt interface */
 struct mosquitto *
@@ -51,36 +52,10 @@ enum demo_protocols
   DEMO_PROTOCOL_COUNT
 };
 
-#define TOPIC_MAX_SUBSCRIBERS 100
-
-typedef struct subscription_t
-{
-  char *topic;
-  void *subscribers[TOPIC_MAX_SUBSCRIBERS];
-  int count_subscribed;
-  struct subscription_t *next;
-  struct subscription_t *prev;
-} Subscription;
-
-typedef struct
-{
-  Subscription *first;
-  Subscription *last;
-} Subscriptions;
-
 // FIXME do not declare it globally
 extern struct mosquitto *MOSQUITTO;
 extern Subscriptions SUBSCRIPTIONS;
 extern struct libwebsocket_context *WEBSOCKETS;
+extern char *PAYLOAD;
 
-bool
-subscribe(Subscriptions *subscriptions, char *topic,
-    void *subscriber);
-bool
-unsubscribe(Subscriptions *subscriptions, char *topic,
-    void *subscriber);
-bool
-subscribed_to(Subscriptions *subscriptions, char *topic,
-    void *subscriber);
-Subscription *
-subscription_get(Subscriptions *subscribers, char *topic);
+
