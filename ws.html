@@ -18,7 +18,9 @@
 	// TODO reloading the browser should unsubscribe the client
     socket.onopen = function () {
     	//for(var i = 0; i < 100; i++) {
+        	sendMessage(socket, '/foo/baz');
         	sendMessage(socket, '/foo/bar');
+        	sendMessage(socket, '/blub/#');
         //}
     };
 

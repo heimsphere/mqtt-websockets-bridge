@@ -40,7 +40,7 @@ subscription_get(Subscriptions *subscribers, char *topic)
       for (sub = subscribers->first; ; sub = sub->next)
         {
           bool result;
-          mosquitto_topic_matches_sub(topic, sub->topic, &result);
+          mosquitto_topic_matches_sub(sub->topic, topic, &result);
           if (result) return sub;
           if (sub->next == NULL) break;
         }
