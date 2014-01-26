@@ -36,7 +36,7 @@ TEST(subscriber, Unsubscribe)
   TEST_ASSERT_FALSE(subscribed_to(&s, topic, &subscriber));
 }
 
-TEST(subscriber, SubscribeMulti)
+TEST(subscriber, SubscribeMultipleClients)
 {
   Subscriptions s;
   subscriptions_new(&s);
@@ -48,6 +48,20 @@ TEST(subscriber, SubscribeMulti)
 
   TEST_ASSERT_TRUE(subscribed_to(&s, topic, &subscriber1));
   TEST_ASSERT_TRUE(subscribed_to(&s, topic, &subscriber2));
+}
+
+TEST(subscriber, SubscribeMultipleTopics)
+{
+  Subscriptions s;
+  subscriptions_new(&s);
+  const char *subscriber1 = "subscriber 1";
+  const char *topic1 = "/foo/bar";
+  const char *topic2 = "/foo/baz";
+  subscribe(&s, topic1, &subscriber1);
+  subscribe(&s, topic2, &subscriber1);
+
+  TEST_ASSERT_TRUE(subscribed_to(&s, topic1, &subscriber1));
+  TEST_ASSERT_TRUE(subscribed_to(&s, topic2, &subscriber1));
 }
 
 TEST(subscriber, NotSubscribed)
@@ -64,6 +78,7 @@ TEST_GROUP_RUNNER(subscriber)
 { 
     RUN_TEST_CASE(subscriber, Subscribe);
     RUN_TEST_CASE(subscriber, Unsubscribe);
-    RUN_TEST_CASE(subscriber, SubscribeMulti);
+    RUN_TEST_CASE(subscriber, SubscribeMultipleClients);
+    RUN_TEST_CASE(subscriber, SubscribeMultipleTopics);
     RUN_TEST_CASE(subscriber, NotSubscribed);
 }

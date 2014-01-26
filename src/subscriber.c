@@ -1,27 +1,27 @@
 #include "bridge.h"
 
 Subscription *
-subscription_new(Subscriptions *subscribers, char *topic)
+subscription_new(Subscriptions *subscriptions, char *topic)
 {
-  Subscription *new = calloc(1, sizeof(Subscription));
+  Subscription *new_subscription = calloc(1, sizeof(Subscription));
+  new_subscription->prev = NULL;
+  new_subscription->next = NULL;
+  new_subscription->topic = strdup(topic);
+  new_subscription->count_subscribed = 0;
+  memset(new_subscription->subscribers, 0, TOPIC_MAX_SUBSCRIBERS);
 
-  if (subscribers->last)
+  if (subscriptions->last)
     {
-      new->prev = subscribers->last;
-      subscribers->last->next = new;
-      subscribers->last = new;
+      new_subscription->prev = subscriptions->last;
+      subscriptions->last->next = new_subscription;
+      subscriptions->last = new_subscription;
     }
   else
     {
-      subscribers->first = new;
-      subscribers->last = new;
-      new->prev = NULL;
-      new->next = NULL;
-      new->topic = strdup(topic);
-      new->count_subscribed = 0;
-      memset(new->subscribers, 0, TOPIC_MAX_SUBSCRIBERS);
+      subscriptions->first = new_subscription;
+      subscriptions->last = new_subscription;
     }
-  return new;
+  return new_subscription;
 }
 
 void
