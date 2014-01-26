@@ -2,14 +2,14 @@ TESTS=$(shell ls test_*.c | cut -d'.' -f1 | sed 's/^test_//')
 OUT=.run_tests
 TEMPLATE=bin/group.c.template
 UNITY_SRC=https://codeload.github.com/ThrowTheSwitch/Unity/zip/master
-SRC=variable_scope.c
+SRC=variable_scope.c ../src/subscriber.c ../src/llog.c
 
 LIBWS_PATH=`brew --prefix libwebsockets`
 LIBEV_PATH=`brew --prefix libev`
 MOSQUITTO_PATH=`brew --prefix mosquitto`
 JANSSON_PATH=`brew --prefix jansson`
 
-CFLAGS=-Wall -Wp -w -g -I./unity -I../src -DTEST
+CFLAGS=-Wall -Wp -w -g -dwarf-2 -I./unity -I../src -DTEST
 # Specify your preferred editor which should open a new test file/group.
 # Set to `true` to do nothing.
 OPEN_IN_EDITOR=true

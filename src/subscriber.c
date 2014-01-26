@@ -31,9 +31,10 @@ subscription_new(Subscriptions *subscribers, char *topic)
 }
 
 void
-subscription_destroy(Subscriptions *subscribers, Subscription *sub)
+subscription_destroy(Subscription *sub)
 {
-  assert(false);
+  free(sub->topic);
+  free(sub);
 }
 
 Subscription *
@@ -42,12 +43,12 @@ subscription_get(Subscriptions *subscribers, char *topic)
   if (subscribers->first)
     {
       Subscription *sub;
-      for (sub = subscribers->first; sub->next; sub = sub->next)
+      for (sub = subscribers->first; ; sub = sub->next)
         {
           bool result;
           mosquitto_topic_matches_sub(topic, sub->topic, &result);
-          if (result)
-            return sub;
+          if (result) return sub;
+          if (sub->next == NULL) break;
         }
     }
   return NULL;
@@ -89,7 +90,6 @@ subscription_remove_subscriber(Subscription *sub,
     {
       if (sub->subscribers[i] == subscriber)
         {
-          // last one fills the hole
           sub->subscribers[i] = sub->subscribers[idx_last];
           sub->subscribers[idx_last] = NULL;
           sub->count_subscribed = idx_last;
@@ -97,6 +97,17 @@ subscription_remove_subscriber(Subscription *sub,
         }
     }
   return false;
+}
+
+void
+subscriptions_new(Subscriptions *subscriptions) {
+  subscriptions->first = NULL;
+  subscriptions->last = NULL;
+}
+
+void
+subscriptions_destroy(Subscriptions *subscriptions) {
+  //
 }
 
 /*
@@ -110,7 +121,7 @@ subscribed_to(Subscriptions *subscriptions, char *topic,
   if (sub)
     {
       int i;
-      for (i = 0; sub->count_subscribed - 1; i++)
+      for (i = 0; i < sub->count_subscribed; i++)
         {
           if (sub->subscribers[i] == subscriber)
             return true;
