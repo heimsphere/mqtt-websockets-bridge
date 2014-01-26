@@ -12,6 +12,9 @@ clean:
 
 format:
 	uncrustify -c ../uncrustify.linux.cfg --replace *.c
+	
+memcheck:
+	leaks `pidof bridge`
 
 
 bridge: clean
