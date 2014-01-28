@@ -19,6 +19,6 @@ memcheck:
 
 bridge: clean
 	gcc -g -pedantic -Wall -o bridge $(SRC) \
-		-DINSTALL_DATADIR='"."' -DEXTERNAL_POLL \
+		-DEXTERNAL_POLL \
 		-I$(LIBWS_PATH)/include/ -L$(LIBWS_PATH)/lib -lwebsockets \
 		-I$(MOSQUITTO_PATH)/include/ -L$(MOSQUITTO_PATH)/lib -lmosquitto

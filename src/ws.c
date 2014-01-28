@@ -20,8 +20,7 @@ int *fd_lookup;
 int count_pollfds;
 int force_exit = 0;
 
-#define LOCAL_RESOURCE_PATH INSTALL_DATADIR "/libwebsockets-test-server"
-char *resource_path = LOCAL_RESOURCE_PATH;
+#define LOCAL_RESOURCE_PATH "./"
 
 /*
  * We take a strict whitelist approach to stop ../ attacks
@@ -75,9 +74,9 @@ callback_http(struct libwebsocket_context *context, struct libwebsocket *wsi,
 
     if (!strcmp((const char*) in, "/leaf.jpg"))
       {
-        if (strlen(resource_path) > sizeof(leaf_path) - 10)
+        if (strlen(LOCAL_RESOURCE_PATH) > sizeof(leaf_path) - 10)
           return -1;
-        sprintf(leaf_path, "%s/leaf.jpg", resource_path);
+        sprintf(leaf_path, "%s/leaf.jpg", LOCAL_RESOURCE_PATH);
 
         /* well, let's demonstrate how to send the hard way */
 
@@ -128,7 +127,7 @@ callback_http(struct libwebsocket_context *context, struct libwebsocket *wsi,
       if (in && strcmp((const char*) in, whitelist[n].urlpath) == 0)
         break;
 
-    sprintf(buf, "%s%s", resource_path, whitelist[n].urlpath);
+    sprintf(buf, "%s%s", LOCAL_RESOURCE_PATH, whitelist[n].urlpath);
 
     if (libwebsockets_serve_http_file(context, wsi, buf, whitelist[n].mimetype))
       return -1; /* through completion or error, close the socket */
