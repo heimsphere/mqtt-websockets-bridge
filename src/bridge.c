@@ -6,6 +6,17 @@ struct mosquitto *MOSQUITTO;
 struct libwebsocket_context *WEBSOCKETS;
 Subscriptions SUBSCRIPTIONS;
 
+void client_unsubscribed(Subscriptions *subscriptions, Subscription *sub, void *subscriber)
+{
+  llog(LOG_INFO, "Unsubscribe client %p from topic %s\n", subscriber, sub->topic);
+
+  if (sub->count_subscribed == 0) {
+      llog(LOG_INFO, "No more subscribers left for topic %s. "
+          "Unsubscribe from server.\n", sub->topic);
+      mosquitto_unsubscribe(MOSQUITTO, NULL, sub->topic);
+  }
+}
+
 int
 main(const int argc, const char *argv[])
 {
@@ -15,6 +26,7 @@ main(const int argc, const char *argv[])
   llog_init();
 
   subscriptions_new(&SUBSCRIPTIONS);
+  SUBSCRIPTIONS.unsubscribe_cb = client_unsubscribed;
 
 #ifdef EXTERNAL_POLL
   max_poll_elements = getdtablesize();

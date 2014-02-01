@@ -309,6 +309,10 @@ callback_lws_mqtt_bridge(struct libwebsocket_context *context,
     lwsl_notice("callback_lws_mqtt_bridge: LWS_CALLBACK_SERVER_WRITEABLE\n");
     // we don't use the server callback and write to the clients directly when a message was received
     break;
+  case LWS_CALLBACK_CLOSED:
+    lwsl_notice("Connection closed: Unsubscribe from all subscriptions\n");
+    unsubscribe_all(&SUBSCRIPTIONS, wsi);
+    break;
   case LWS_CALLBACK_RECEIVE:
     lwsl_notice("callback_lws_mqtt_bridge: LWS_CALLBACK_RECEIVE\n");
     /* subscribe to the message */

@@ -11,10 +11,13 @@ typedef struct subscription_t
   struct subscription_t *prev;
 } Subscription;
 
-typedef struct
+typedef struct subscriptions_t
 {
   Subscription *first;
   Subscription *last;
+  void
+  (*unsubscribe_cb)(struct subscriptions_t *subscriptions,
+      Subscription *subscription, void *subscriber);
 } Subscriptions;
 
 void
@@ -24,13 +27,16 @@ void
 subscriptions_destroy(Subscriptions *subscriptions);
 
 bool
-subscribe(Subscriptions *subscriptions, char *topic,
-    void *subscriber);
+subscribe(Subscriptions *subscriptions, char *topic, void *subscriber);
+
 bool
-unsubscribe(Subscriptions *subscriptions, char *topic,
-    void *subscriber);
+unsubscribe(Subscriptions *subscriptions, char *topic, void *subscriber);
+
 bool
-subscribed_to(Subscriptions *subscriptions, char *topic,
-    void *subscriber);
+subscribed_to(Subscriptions *subscriptions, char *topic, void *subscriber);
+
 Subscription *
 subscription_get(Subscriptions *subscribers, char *topic);
+
+void
+unsubscribe_all(Subscriptions *subscriptions, void *subscriber);

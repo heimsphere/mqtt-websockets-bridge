@@ -37,12 +37,11 @@ subscription_get(Subscriptions *subscribers, char *topic)
   if (subscribers->first)
     {
       Subscription *sub;
-      for (sub = subscribers->first; ; sub = sub->next)
+      for (sub = subscribers->first; sub != NULL; sub = sub->next)
         {
           bool result;
           mosquitto_topic_matches_sub(sub->topic, topic, &result);
           if (result) return sub;
-          if (sub->next == NULL) break;
         }
     }
   return NULL;
@@ -74,19 +73,25 @@ subscription_add_subscriber(Subscription *sub, void *subscriber)
  * @return true if subscriber was removed, false else
  */
 bool
-subscription_remove_subscriber(Subscription *sub,
-    void *subscriber, bool remove_if_empty)
+subscription_remove_subscriber(Subscriptions *subscriptions, Subscription *sub,
+    void *subscriber)
 {
   assert(sub);
+
   int i;
   int idx_last = sub->count_subscribed - 1;
   for (i = 0; i <= idx_last; i++)
     {
       if (sub->subscribers[i] == subscriber)
         {
+          /* the last one fills the hole */
           sub->subscribers[i] = sub->subscribers[idx_last];
           sub->subscribers[idx_last] = NULL;
           sub->count_subscribed = idx_last;
+
+          if (subscriptions->unsubscribe_cb)
+            subscriptions->unsubscribe_cb(subscriptions, sub, subscriber);
+
           return true;
         }
     }
@@ -94,13 +99,16 @@ subscription_remove_subscriber(Subscription *sub,
 }
 
 void
-subscriptions_new(Subscriptions *subscriptions) {
+subscriptions_new(Subscriptions *subscriptions)
+{
   subscriptions->first = NULL;
   subscriptions->last = NULL;
+  subscriptions->unsubscribe_cb = NULL;
 }
 
 void
-subscriptions_destroy(Subscriptions *subscriptions) {
+subscriptions_destroy(Subscriptions *subscriptions)
+{
   //
 }
 
@@ -108,8 +116,7 @@ subscriptions_destroy(Subscriptions *subscriptions) {
  * @return true if given subscriber subscribed to given description
  */
 bool
-subscribed_to(Subscriptions *subscriptions, char *topic,
-    void *subscriber)
+subscribed_to(Subscriptions *subscriptions, char *topic, void *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
   if (sub)
@@ -125,8 +132,7 @@ subscribed_to(Subscriptions *subscriptions, char *topic,
 }
 
 bool
-subscribe(Subscriptions *subscriptions, char *topic,
-    void *subscriber)
+subscribe(Subscriptions *subscriptions, char *topic, void *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
   if (!sub)
@@ -136,12 +142,20 @@ subscribe(Subscriptions *subscriptions, char *topic,
 }
 
 bool
-unsubscribe(Subscriptions *subscriptions, char *topic,
-    void *subscriber)
+unsubscribe(Subscriptions *subscriptions, char *topic, void *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
-  if (!sub)
-    return false;
-  else
-    return subscription_remove_subscriber(sub, subscriber, false);
+  if (sub)
+    return subscription_remove_subscriber(subscriptions, sub, subscriber);
+  return false;
+}
+
+void
+unsubscribe_all(Subscriptions *subscriptions, void *subscriber)
+{
+  Subscription *sub;
+  for (sub = subscriptions->first; sub != NULL; sub = sub->next)
+    {
+      subscription_remove_subscriber(subscriptions, sub, subscriber);
+    }
 }
