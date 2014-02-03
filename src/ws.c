@@ -294,6 +294,52 @@ dump_handshake_info(struct libwebsocket *wsi)
 
 /* MQTT bridge protocol */
 
+static void
+ws_subscribe(struct libwebsocket *wsi, Message *msg) {
+  if (subscribed_to(&SUBSCRIPTIONS, msg->topic, wsi))
+    {
+      lwsl_notice("Client already subscribed to topic : %s\n", msg->topic);
+    }
+  else
+    {
+      // check whether we already subscribed to the MQTT topic
+      Subscription *sub = subscription_get(&SUBSCRIPTIONS, msg->topic);
+
+      // first add client to subscribers
+      lwsl_notice("Subscribing client to topic : %s\n", msg->topic);
+      if (subscribe(&SUBSCRIPTIONS, msg->topic, wsi))
+        {
+          lwsl_notice("Client subscribed to topic : %s\n", msg->topic);
+        }
+
+      /*
+       * Subscribe to MQTT topic if not already subscribed.
+       * We only subcribe once for each topic to the server.
+       */
+      if (sub)
+          llog(LOG_NOTICE, "Already subscribed to MQTT topic : %s\n", msg->topic);
+      else
+        {
+          llog(LOG_NOTICE, "Subscribing to MQTT topic : %s\n", msg->topic);
+          mosquitto_subscribe(MOSQUITTO, NULL, msg->topic, 0);
+        }
+    }
+}
+
+static void
+ws_unsubscribe(struct libwebsocket *wsi, Message *msg) {
+  if (subscribed_to(&SUBSCRIPTIONS, msg->topic, wsi))
+      unsubscribe(&SUBSCRIPTIONS, msg->topic, wsi);
+  else
+    lwsl_notice("Client not subscribed to topic : %s\n", msg->topic);
+}
+
+static void
+ws_publish(Message *msg)
+{
+  mosquitto_publish(MOSQUITTO, NULL, msg->topic, strlen(msg->data), msg->data, 0, false);
+}
+
 static int
 callback_lws_mqtt_bridge(struct libwebsocket_context *context,
     struct libwebsocket *wsi, enum libwebsocket_callback_reasons reason,
@@ -315,36 +361,23 @@ callback_lws_mqtt_bridge(struct libwebsocket_context *context,
     break;
   case LWS_CALLBACK_RECEIVE:
     lwsl_notice("callback_lws_mqtt_bridge: LWS_CALLBACK_RECEIVE\n");
-    /* subscribe to the message */
-    char *topic = (char *) in;
-    if (subscribed_to(&SUBSCRIPTIONS, topic, wsi))
-      {
-        lwsl_notice("Client already subscribed to topic : %s\n", topic);
-      }
-    else
-      {
-        // check whether we already subscribed to the MQTT topic
-        Subscription *sub = subscription_get(&SUBSCRIPTIONS, topic);
 
-        // first add client to subscribers
-        lwsl_notice("Subscribing client to topic : %s\n", topic);
-        if (subscribe(&SUBSCRIPTIONS, topic, wsi))
-          {
-            lwsl_notice("Client subscribed to topic : %s\n", topic);
-          }
+    Message msg;
+    message_parse(&msg, (char *) in);
+    message_serialize(&msg);
 
-        /*
-         * Subscribe to MQTT topic if not already subscribed.
-         * We only subcribe once for each topic to the server.
-         */
-        if (sub)
-            llog(LOG_NOTICE, "Already subscribed to MQTT topic : %s\n", topic);
-        else
-          {
-            llog(LOG_NOTICE, "Subscribing to MQTT topic : %s\n", topic);
-            mosquitto_subscribe(MOSQUITTO, NULL, topic, 0);
-          }
-      }
+    switch(msg.method)
+    {
+    case PUBLISH:
+      ws_publish(&msg);
+      break;
+    case SUBSCRIBE:
+      ws_subscribe(wsi, &msg);
+      break;
+    case UNSUBSCRIBE:
+      ws_unsubscribe(wsi, &msg);
+      break;
+    }
     break;
 
   case LWS_CALLBACK_PROTOCOL_DESTROY:

@@ -69,7 +69,7 @@ message_parse(Message *msg, const char *data)
   strsep(&rest, "\n");
 
   msg->topic = strdup(token);
-  if (strlen(rest) > 0) msg->data = strdup(rest);
+  if (rest && strlen(rest) > 0) msg->data = strdup(rest);
   free(data_copy);
 
   return 1;
