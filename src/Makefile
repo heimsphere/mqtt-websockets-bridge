@@ -1,7 +1,7 @@
 LIBWS_PATH=`brew --prefix libwebsockets`
 LIBEV_PATH=`brew --prefix libev`
 MOSQUITTO_PATH=`brew --prefix mosquitto`
-SRC=llog.c subscriber.c ws.c mqtt.c bridge.c
+SRC=llog.c subscriber.c ws.c mqtt.c bridge.c message.c
 
 ALL=bridge
 

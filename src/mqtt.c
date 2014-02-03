@@ -15,12 +15,15 @@ my_message_callback(struct mosquitto *mosq, void *userdata,
           llog(LOG_INFO, "Notify %d lws clients for topic %s\n",
               subscription->count_subscribed, message->topic);
 
+          Message msg;
+          message_new(&msg, PUBLISH, message->topic, message->payload);
+          message_serialize(&msg);
+
           // create libwebsockets message from MQTT payload
-          unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + 512
+          unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + msg.size
               + LWS_SEND_BUFFER_POST_PADDING];
           unsigned char *lws_message = &buf[LWS_SEND_BUFFER_PRE_PADDING];
-          int lws_message_length = sprintf((char * )lws_message, "%s",
-              message->payload);
+          int lws_message_length = sprintf((char * )lws_message, "%s", msg.serialized);
 
           // dispatch message to all subscribers
           for (int i = 0; i < subscription->count_subscribed; i++)

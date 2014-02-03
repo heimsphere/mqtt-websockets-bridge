@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include "subscriber.h"
 #include "llog.h"
+#include "message.h"
 
 /* mqtt interface */
 struct mosquitto *
