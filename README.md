@@ -31,6 +31,27 @@ clients to the MQTT broker and vice versa.
 * A websockets capable browser
 * A posix compliant system (Only tested on OS X 10.9.1)
 
+#### Possible JS API for MPD
+
+		var mpd = new Mpd(connection, '0815'); '/player/mpd/0815/playlist/'
+		'/player/mpd/0815/refresh' => // triggers pushes in all channels
+
+
+		mpd.on('song', function(song) {
+			console.log("Artist", song.artist);
+		})
+
+		mpd.play();
+		mpd.pause();
+		'/player/mpd/0815/state' => 'play', 'pause'
+
+		mpd.nextSong();
+		mpd.previousSong();
+		'/player/mpd/0815/playlist' => 'next', 'previous'
+
+		mpd.setVolume(0.5);
+		'/player/mpd/0815/volume' => 0.5
+
 ### Limitations
 
 The event loop integration of mosquitto and websockets is very simple.
