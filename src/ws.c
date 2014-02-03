@@ -377,6 +377,7 @@ callback_lws_mqtt_bridge(struct libwebsocket_context *context,
       ws_unsubscribe(wsi, &msg);
       break;
     }
+    message_free(&msg);
     break;
 
   case LWS_CALLBACK_PROTOCOL_DESTROY:
