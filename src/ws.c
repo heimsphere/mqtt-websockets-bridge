@@ -364,7 +364,6 @@ callback_lws_mqtt_bridge(struct libwebsocket_context *context,
 
     Message msg;
     message_parse(&msg, (char *) in);
-    message_serialize(&msg);
 
     switch(msg.method)
     {
