@@ -1,7 +1,7 @@
 #include "bridge.h"
 
 Subscription *
-subscription_new(Subscriptions *subscriptions, char *topic)
+subscription_new(Subscriptions *subscriptions, const char *topic)
 {
   Subscription *new_subscription = calloc(1, sizeof(Subscription));
   new_subscription->prev = NULL;
@@ -32,7 +32,7 @@ subscription_destroy(Subscription *sub)
 }
 
 Subscription *
-subscription_get(Subscriptions *subscribers, char *topic)
+subscription_get(Subscriptions *subscribers, const char *topic)
 {
   if (subscribers->first)
     {
@@ -116,7 +116,7 @@ subscriptions_destroy(Subscriptions *subscriptions)
  * @return true if given subscriber subscribed to given description
  */
 bool
-subscribed_to(Subscriptions *subscriptions, char *topic, void *subscriber)
+subscribed_to(Subscriptions *subscriptions, const char *topic, void *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
   if (sub)
@@ -132,7 +132,7 @@ subscribed_to(Subscriptions *subscriptions, char *topic, void *subscriber)
 }
 
 bool
-subscribe(Subscriptions *subscriptions, char *topic, void *subscriber)
+subscribe(Subscriptions *subscriptions, const char *topic, void *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
   if (!sub)
@@ -142,7 +142,7 @@ subscribe(Subscriptions *subscriptions, char *topic, void *subscriber)
 }
 
 bool
-unsubscribe(Subscriptions *subscriptions, char *topic, void *subscriber)
+unsubscribe(Subscriptions *subscriptions, const char *topic, void *subscriber)
 {
   Subscription *sub = subscription_get(subscriptions, topic);
   if (sub)

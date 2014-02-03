@@ -27,16 +27,16 @@ void
 subscriptions_destroy(Subscriptions *subscriptions);
 
 bool
-subscribe(Subscriptions *subscriptions, char *topic, void *subscriber);
+subscribe(Subscriptions *subscriptions, const char *topic, void *subscriber);
 
 bool
-unsubscribe(Subscriptions *subscriptions, char *topic, void *subscriber);
+unsubscribe(Subscriptions *subscriptions, const char *topic, void *subscriber);
 
 bool
-subscribed_to(Subscriptions *subscriptions, char *topic, void *subscriber);
+subscribed_to(Subscriptions *subscriptions, const char *topic, void *subscriber);
 
 Subscription *
-subscription_get(Subscriptions *subscribers, char *topic);
+subscription_get(Subscriptions *subscribers, const char *topic);
 
 void
 unsubscribe_all(Subscriptions *subscriptions, void *subscriber);
