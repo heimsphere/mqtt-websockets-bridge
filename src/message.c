@@ -7,8 +7,11 @@ static const char *const method_str[] =
 
 static const int method_str_size = 3;
 
+static int
+message_size(Message *msg);
+
 void
-message_new(Message *msg, Method method, const char *topic, const void *data)
+message_new(Message *msg, Method method, const char *topic, const char *data)
 {
   msg->method = method;
   msg->topic = strdup(topic);
@@ -36,12 +39,12 @@ message_parse_method(Message *message, const char *method)
  * message must be freed (on success and on error)
  */
 int
-message_parse(Message *msg, void *data)
+message_parse(Message *msg, const char *data)
 {
   char *data_copy;
 
   /* copy data, since strtok replaces the tokens */
-  data_copy = strdup((char *) data);
+  data_copy = strdup(data);
 
   msg->topic = NULL;
   msg->data = NULL;
@@ -85,7 +88,7 @@ message_serialize(Message *msg)
       msg->data);
 }
 
-int
+static int
 message_size(Message *msg)
 {
   return
@@ -99,8 +102,8 @@ message_size(Message *msg)
 void
 message_free(Message *msg)
 {
-  free(msg->topic);
-  free(msg->data);
+  free((void *) msg->topic);
+  free((void *) msg->data);
   free(msg->serialized);
 
   msg->topic = NULL;
