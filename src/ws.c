@@ -302,26 +302,24 @@ ws_subscribe(struct libwebsocket *wsi, Message *msg) {
     }
   else
     {
-      // check whether we already subscribed to the MQTT topic
+      /*
+       * Subscribe to MQTT topic if not already subscribed.
+       * We only subscribe once for each topic to the server.
+       */
       Subscription *sub = subscription_get(&SUBSCRIPTIONS, msg->topic);
+      if (sub && sub->count_subscribed > 0)
+          llog(LOG_NOTICE, "Already subscribed to MQTT topic : %s\n", msg->topic);
+      else
+        {
+          llog(LOG_NOTICE, "Subscribing to MQTT topic : %s\n", msg->topic);
+          mosquitto_subscribe(MOSQUITTO, NULL, msg->topic, 0);
+        }
 
       // first add client to subscribers
       lwsl_notice("Subscribing client to topic : %s\n", msg->topic);
       if (subscribe(&SUBSCRIPTIONS, msg->topic, wsi))
         {
           lwsl_notice("Client subscribed to topic : %s\n", msg->topic);
-        }
-
-      /*
-       * Subscribe to MQTT topic if not already subscribed.
-       * We only subcribe once for each topic to the server.
-       */
-      if (sub)
-          llog(LOG_NOTICE, "Already subscribed to MQTT topic : %s\n", msg->topic);
-      else
-        {
-          llog(LOG_NOTICE, "Subscribing to MQTT topic : %s\n", msg->topic);
-          mosquitto_subscribe(MOSQUITTO, NULL, msg->topic, 0);
         }
     }
 }
