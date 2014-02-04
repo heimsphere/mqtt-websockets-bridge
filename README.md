@@ -24,6 +24,16 @@ clients to the MQTT broker and vice versa.
 		
 		mosquitto_pub -t /foo/bar -m "Hello World"
 
+## Protocol
+
+### PUB/SUB
+
+see [PUBSUB documentation](doc/PUBSUB.md)
+
+### RPC
+
+see [RPC documentation](doc/RPC.md) 
+
 #### Dependencies
 
 * [libwebsockets](http://libwebsockets.org/trac/libwebsockets) 1.23
