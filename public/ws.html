@@ -2,8 +2,8 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <script src="bower_components/eventEmitter/EventEmitter.min.js"></script>
-        <script src="public/mqttws.js"></script>
+        <script src="../bower_components/eventEmitter/EventEmitter.min.js"></script>
+        <script src="mqttws.js"></script>
         <script>
             var connection = MQTT.connect('ws://127.0.0.1:8080/', function() {
                 var queue = connection.topic('/foo/bar');

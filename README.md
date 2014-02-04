@@ -11,17 +11,17 @@ clients to the MQTT broker and vice versa.
 1. Install the dependencies and start the mosquitto server.
 
 		mosquitto
-		
+	
 2. Build and start the bridge.
 
 		cd mqtt-websockets-bridge/src
 		make
 		./bridge
-		
-3. Open [ws.html](ws.html) in multiple browser instances.
+	
+3. Open [public/ws.html](public/ws.html) in multiple browser instances.
 
 4. Publish a message using the mosquitto client.
-		
+	
 		mosquitto_pub -t /foo/bar -m "Hello World"
 
 ## Protocol
