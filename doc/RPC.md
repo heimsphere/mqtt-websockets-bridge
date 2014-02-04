@@ -28,7 +28,6 @@ Service [MPD](http://www.musicpd.org/doc/protocol/), using a UUID as client iden
 	CALL /clients/EA81D912-2BB7-40F2-AE0F-1F0CD5F81469/rpc/mpd
 	search any Burton
 
-
 	RESULT /clients/EA81D912-2BB7-40F2-AE0F-1F0CD5F81469/rpc/mpd/result
 	file: L01_play_along.mp3
 	Last-Modified: 2014-02-04T20:24:38Z
