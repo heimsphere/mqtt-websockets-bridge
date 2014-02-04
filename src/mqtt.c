@@ -38,7 +38,6 @@ my_message_callback(struct mosquitto *mosq, void *userdata,
                       bytes_written, lws_message_length);
                 }
             }
-
           message_free(&msg);
         }
       else
