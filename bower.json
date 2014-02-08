@@ -1,0 +1,28 @@
+{
+  "name": "mqtt-websockets-bridge",
+  "version": "0.0.1",
+  "homepage": "https://github.com/heimsphere/mqtt-websockets-bridge",
+  "authors": [
+    "Vincent Landgraf <vilandgr@googlemail.com>",
+    "Ruben Jenster <rjenster@gmail.com>"
+  ],
+  "description": "MQTT websockets bridge",
+  "main": "public/mqtt.js",
+  "license": "BSD",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "app/bower_components",
+    "app/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jasmine": "~2.0.0",
+    "eventEmitter": "~4.2.7"
+  },
+  "devDependencies": {
+    "jasmine": "~2.0.0"
+  }
+}
