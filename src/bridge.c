@@ -21,6 +21,87 @@ client_unsubscribed(Subscriptions *subscriptions, Subscription *sub,
     }
 }
 
+void
+my_message_callback(struct mosquitto *mosq, void *userdata,
+    const struct mosquitto_message *message)
+{
+  if (message->payloadlen)
+    {
+      llog(LOG_INFO, "Received message %s : %s\n", message->topic,
+          message->payload);
+      Subscription *subscription = subscription_get(&SUBSCRIPTIONS,
+          message->topic);
+      if (subscription)
+        {
+          llog(LOG_INFO, "Notify %d lws clients for topic %s\n",
+              subscription->count_subscribed, message->topic);
+
+          Message msg;
+          message_new(&msg, PUBLISH, message->topic, message->payload);
+          message_serialize(&msg);
+
+          // create libwebsockets message from MQTT payload
+          unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + msg.size
+              + LWS_SEND_BUFFER_POST_PADDING];
+          unsigned char *lws_message = &buf[LWS_SEND_BUFFER_PRE_PADDING];
+          int lws_message_length = sprintf((char * )lws_message, "%s", msg.serialized);
+
+          // dispatch message to all subscribers
+          for (int i = 0; i < subscription->count_subscribed; i++)
+            {
+              struct libwebsocket *wsi = subscription->subscribers[i];
+              int bytes_written = libwebsocket_write(wsi, lws_message,
+                  lws_message_length, LWS_WRITE_TEXT);
+              if (bytes_written < lws_message_length)
+                {
+                  llog(LOG_ERR,
+                      "ERROR only %d bytes written (message length is %d)\n",
+                      bytes_written, lws_message_length);
+                }
+            }
+          message_free(&msg);
+        }
+      else
+        {
+          llog(LOG_ERR, "No lws clients are subscribed to topic %s\n",
+              message->topic);
+        }
+    }
+  else
+    {
+      printf("%s (null)\n", message->topic);
+    }
+}
+
+void
+my_connect_callback(struct mosquitto *mosq, void *userdata, int result)
+{
+  if (!result)
+    llog(LOG_INFO, "MQTT: connection established.\n");
+  else
+    llog(LOG_ERR, "MQTT: connection failed.\n");
+}
+
+void
+my_subscribe_callback(struct mosquitto *mosq, void *userdata, int mid,
+    int qos_count, const int *granted_qos)
+{
+  int i;
+
+  printf("Subscribed (mid: %d): %d", mid, granted_qos[0]);
+  for (i = 1; i < qos_count; i++)
+    printf(", %d", granted_qos[i]);
+  printf("\n");
+}
+
+void
+my_log_callback(struct mosquitto *mosq, void *userdata, int level,
+    const char *str)
+{
+  /* Pring all log messages regardless of level. */
+  printf("%s\n", str);
+}
+
 int
 main(const int argc, const char *argv[])
 {

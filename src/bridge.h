@@ -35,3 +35,18 @@ extern struct libwebsocket_protocols protocols[];
 extern struct mosquitto *MOSQUITTO;
 extern struct libwebsocket_context *WEBSOCKETS;
 extern Subscriptions SUBSCRIPTIONS;
+
+extern void
+my_connect_callback(struct mosquitto *mosq, void *userdata, int result);
+
+extern void
+my_subscribe_callback(struct mosquitto *mosq, void *userdata, int mid,
+    int qos_count, const int *granted_qos);
+
+extern void
+my_message_callback(struct mosquitto *mosq, void *userdata,
+    const struct mosquitto_message *message);
+
+extern void
+my_log_callback(struct mosquitto *mosq, void *userdata, int level,
+    const char *str);
