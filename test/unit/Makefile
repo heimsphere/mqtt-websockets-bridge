@@ -6,11 +6,12 @@ TESTS=$(shell ls test_*.c 2>/dev/null | cut -d'.' -f1 | sed 's/^test_//')
 # Set to `true` to do nothing.
 EDITOR ?= true
 
+SRC_DIR ?= ../src
 TEST_GROUP_TEMPLATE=bin/group.c.template
-CFLAGS += -Wall -Wp -w -g -I./unity -I../src -DTEST
+CFLAGS += -Wall -Wp -w -g -I./unity -I$(SRC_DIR) -DTEST
 UNITY_SRC=https://codeload.github.com/ThrowTheSwitch/Unity/zip/master
 TEST_RUNNER=.run_tests
-SRC_DIR ?= ../src
+
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
