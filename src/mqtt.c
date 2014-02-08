@@ -101,9 +101,13 @@ initialize_mqtt_context(const char *id)
   mosquitto_message_callback_set(mosq, my_message_callback);
   mosquitto_subscribe_callback_set(mosq, my_subscribe_callback);
 
-  if (mosquitto_connect(mosq, host, port, keepalive))
+  int rc = mosquitto_connect(mosq, host, port, keepalive);
+  if (rc != MOSQ_ERR_SUCCESS)
     {
-      llog(LOG_ERR, "MQTT: Unable to connect.\n");
+      if (rc == MOSQ_ERR_ERRNO)
+        llog(LOG_ERR, "MQTT: %s.\n", strerror(rc));
+      else
+        llog(LOG_ERR, "MQTT: %s.\n", mosquitto_strerror(rc));
       return NULL;
     }
   return mosq;

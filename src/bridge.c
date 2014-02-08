@@ -6,15 +6,19 @@ struct mosquitto *MOSQUITTO;
 struct libwebsocket_context *WEBSOCKETS;
 Subscriptions SUBSCRIPTIONS;
 
-void client_unsubscribed(Subscriptions *subscriptions, Subscription *sub, void *subscriber)
+void
+client_unsubscribed(Subscriptions *subscriptions, Subscription *sub,
+    void *subscriber)
 {
-  llog(LOG_INFO, "Unsubscribe client %p from topic %s\n", subscriber, sub->topic);
+  llog(LOG_INFO, "Unsubscribe client %p from topic %s\n", subscriber,
+      sub->topic);
 
-  if (sub->count_subscribed == 0) {
+  if (sub->count_subscribed == 0)
+    {
       llog(LOG_INFO, "No more subscribers left for topic %s. "
           "Unsubscribe from server.\n", sub->topic);
       mosquitto_unsubscribe(MOSQUITTO, NULL, sub->topic);
-  }
+    }
 }
 
 int
@@ -57,6 +61,7 @@ main(const int argc, const char *argv[])
 
   llog(LOG_INFO, "Starting server\n");
 
+  int reconnect_attempts = 0;
   for (;;)
     {
 #ifdef EXTERNAL_POLL
@@ -84,9 +89,23 @@ main(const int argc, const char *argv[])
       libwebsocket_service(WEBSOCKETS, EVENT_LOOP_TIMEOUT);
 #endif
       int rc = mosquitto_loop(MOSQUITTO, EVENT_LOOP_TIMEOUT, 1);
-      if (rc != MOSQ_ERR_SUCCESS)
-        llog(LOG_ERR, "Error in mosquitto event loop: %s\n",
-            mosquitto_strerror(rc));
+      if (rc == MOSQ_ERR_SUCCESS)
+        reconnect_attempts = 0;
+      else
+        {
+          if (rc == MOSQ_ERR_CONN_LOST || rc == MOSQ_ERR_CONN_REFUSED
+              || rc == MOSQ_ERR_NO_CONN)
+            {
+              if (reconnect_attempts == 0)
+                llog(LOG_WARNING, "Mosquitto trying reconnect: %s\n",
+                    mosquitto_strerror(rc));
+              mosquitto_reconnect(MOSQUITTO);
+              reconnect_attempts++;
+            }
+          else
+            llog(LOG_ERR, "Error in mosquitto event loop: %s\n",
+                mosquitto_strerror(rc));
+        }
     }
 
   libwebsocket_context_destroy(WEBSOCKETS);
