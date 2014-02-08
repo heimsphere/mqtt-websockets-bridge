@@ -18,7 +18,7 @@ clients to the MQTT broker and vice versa.
 		make
 		./bridge
 	
-3. Open [public/ws.html](public/ws.html) in multiple browser instances.
+3. Open [public/index.html](public/index.html) in multiple browser instances.
 
 4. Publish a message using the mosquitto client.
 	
