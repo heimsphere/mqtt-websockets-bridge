@@ -3,7 +3,7 @@ LIBEV_PATH=`brew --prefix libev`
 MOSQUITTO_PATH=`brew --prefix mosquitto`
 SRC=llog.c subscriber.c ws.c mqtt.c bridge.c message.c
 
-ALL=bridge
+ALL=bridge echo_service
 
 default: $(ALL)
 
@@ -21,4 +21,8 @@ bridge: clean
 	gcc -g -pedantic -Wall -o bridge $(SRC) \
 		-DEXTERNAL_POLL \
 		-I$(LIBWS_PATH)/include/ -L$(LIBWS_PATH)/lib -lwebsockets \
+		-I$(MOSQUITTO_PATH)/include/ -L$(MOSQUITTO_PATH)/lib -lmosquitto
+
+echo_service: clean
+	gcc -g -pedantic -Wall -o echo_service mqtt.c llog.c echo_service.c \
 		-I$(MOSQUITTO_PATH)/include/ -L$(MOSQUITTO_PATH)/lib -lmosquitto

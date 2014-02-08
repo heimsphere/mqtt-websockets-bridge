@@ -3,3 +3,4 @@
 .project
 src/bridge
 bower_components
+src/echo_service
