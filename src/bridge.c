@@ -38,7 +38,7 @@ my_message_callback(struct mosquitto *mosq, void *userdata,
 
           Message msg;
           message_new(&msg, PUBLISH, message->topic, message->payload);
-          message_serialize(&msg);
+          message_serialize_response(&msg);
 
           // create libwebsockets message from MQTT payload
           unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + msg.size

@@ -1,6 +1,7 @@
 #include "message.h"
 
-static const char* FORMAT = "%s %s\n%s";
+#define REQUEST_FORMAT "%s %s\n%s"
+#define RESPONSE_FORMAT "%s\n%s"
 
 static const char *const method_str[] =
   { "SUBSCRIBE", "UNSUBSCRIBE", "PUBLISH" };
@@ -8,7 +9,10 @@ static const char *const method_str[] =
 static const int method_str_size = 3;
 
 static int
-message_size(Message *msg);
+message_request_size(Message *msg);
+
+static int
+message_response_size(Message *msg);
 
 void
 message_new(Message *msg, Method method, const char *topic, const char *data)
@@ -76,26 +80,50 @@ message_parse(Message *msg, const char *data)
 }
 
 void
-message_serialize(Message *msg)
+message_serialize_request(Message *msg)
 {
-  msg->size = message_size(msg);
+  free(msg->serialized);
+  msg->size = message_request_size(msg);
   msg->serialized = malloc(msg->size);
 
   snprintf(msg->serialized, msg->size,
-      FORMAT,
+      REQUEST_FORMAT,
       method_str[msg->method],
       msg->topic,
       msg->data);
 }
 
+void
+message_serialize_response(Message *msg)
+{
+  free(msg->serialized);
+  msg->size = message_response_size(msg);
+  msg->serialized = malloc(msg->size);
+
+  snprintf(msg->serialized, msg->size,
+      RESPONSE_FORMAT,
+      msg->topic,
+      msg->data);
+}
+
 static int
-message_size(Message *msg)
+message_request_size(Message *msg)
 {
   return
       (strlen(method_str[msg->method])
       + strlen(msg->topic)
       + ((msg->data) ? strlen(msg->data) : 0)
       + 3) /* separators + \0 terminator */
+      * sizeof(char);
+}
+
+static int
+message_response_size(Message *msg)
+{
+  return
+      (strlen(msg->topic)
+      + ((msg->data) ? strlen(msg->data) : 0)
+      + 2) /* 1 separator + \0 terminator */
       * sizeof(char);
 }
 

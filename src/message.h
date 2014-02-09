@@ -48,7 +48,17 @@ message_parse(Message *msg, const char *data);
  * @param[in,out] msg The message which is serialized.
  */
 void
-message_serialize(Message *msg);
+message_serialize_request(Message *msg);
+
+/*!
+ * Serializes the given message.
+ * The serialized message is stored in the message itself.
+ *
+ * @param[in,out] msg The message which is serialized.
+ */
+void
+message_serialize_response(Message *msg);
+
 
 /*!
  * Frees the memory allocated for the message, including the serialized form.

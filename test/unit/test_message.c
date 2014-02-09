@@ -52,7 +52,7 @@ TEST(message, ParseSerializeSubscribe)
   int res;
 
   message_new(&msg, SUBSCRIBE, "/hello/world", NULL);
-  message_serialize(&msg);
+  message_serialize_request(&msg);
   res = message_parse(&msg_deserialized, msg.serialized);
 
   TEST_ASSERT_TRUE(res > 0);
@@ -71,7 +71,7 @@ TEST(message, ParseSerializeUnsubscribe)
   int res;
 
   message_new(&msg, UNSUBSCRIBE, "/hello/world", NULL);
-  message_serialize(&msg);
+  message_serialize_request(&msg);
   res = message_parse(&msg_deserialized, msg.serialized);
 
   TEST_ASSERT_TRUE(res > 0);
@@ -90,7 +90,7 @@ TEST(message, ParseSerializePublish)
   int res;
 
   message_new(&msg, PUBLISH, "/hello/world", "hello world");
-  message_serialize(&msg);
+  message_serialize_request(&msg);
   res = message_parse(&msg_deserialized, msg.serialized);
 
   TEST_ASSERT_TRUE(res > 0);
