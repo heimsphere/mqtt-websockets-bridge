@@ -1,46 +1,38 @@
 #include <mosquitto.h>
-#include "bridge.h"
+#include "rpc.h"
+#include "mqtt.h"
 
-void
+static void
 my_connect_callback(struct mosquitto *mosq, void *userdata, int result)
 {
-  mosquitto_subscribe(mosq, 0, "_RPC/in/+/+/echo/echo", 0);
+  if (!result)
+    {
+     llog(LOG_INFO, "MQTT: connection established.\n");
+     mosquitto_subscribe(mosq, 0, RPC_SUBSCRIBE_PREFIX "/echo/echo", 0);
+    }
+   else
+     llog(LOG_ERR, "MQTT: connection failed.\n");
 }
 
-void
-my_subscribe_callback(struct mosquitto *mosq, void *userdata, int mid,
-    int qos_count, const int *granted_qos)
-{
-
-}
-
-#define OUT_PREFIX "_RPC/out"
-#define OUT_PREFIX_LEN 7
-
-extern void
+static void
 my_message_callback(struct mosquitto *mosq, void *userdata,
     const struct mosquitto_message *message)
 {
-    char buf[512];
-    char *in_topic = strdup(&(message->topic)[OUT_PREFIX_LEN]);
-    sprintf(buf, OUT_PREFIX "%s", in_topic);
-    printf("%s\n", buf);
-    mosquitto_publish(mosq, 0, buf, message->payloadlen, message->payload, 0, false);
-    free(in_topic);
-}
-
-extern void
-my_log_callback(struct mosquitto *mosq, void *userdata, int level,
-    const char *str) {
-
+    llog(LOG_INFO, "received message from : %s\n", message->topic);
+    char response_topic[RPC_RESPONSE_TOPIC_LENGTH(message)];
+    RPC_RESPONSE_TOPIC(response_topic, message);
+    llog(LOG_INFO, "sending response to: %s\n", response_topic);
+    mosquitto_publish(mosq, 0, response_topic, message->payloadlen, message->payload, 0, false);
 }
 
 int main(int argc, char **argv)
 {
-  struct mosquitto *mosq = NULL;
-  mosq = initialize_mqtt_context("echo");
+  MessageQueue queue;
+  MessageQueue_new(&queue, "echo");
+  queue.on_message = my_message_callback;
+  queue.on_connect = my_connect_callback;
+  MessageQueue_connect(&queue);
   for(;;)
-    mosquitto_loop_forever(mosq, -1, 1);
-  mosquitto_destroy(mosq);
-  mosquitto_lib_cleanup();
+    MessageQueue_run(&queue, 1000);
+  MessageQueue_free(&queue);
 }

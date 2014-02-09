@@ -21,7 +21,7 @@ client_unsubscribed(Subscriptions *subscriptions, Subscription *sub,
     }
 }
 
-void
+static void
 my_message_callback(struct mosquitto *mosq, void *userdata,
     const struct mosquitto_message *message)
 {
@@ -44,7 +44,8 @@ my_message_callback(struct mosquitto *mosq, void *userdata,
           unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + msg.size
               + LWS_SEND_BUFFER_POST_PADDING];
           unsigned char *lws_message = &buf[LWS_SEND_BUFFER_PRE_PADDING];
-          int lws_message_length = sprintf((char * )lws_message, "%s", msg.serialized);
+          int lws_message_length = sprintf((char * )lws_message, "%s",
+              msg.serialized);
 
           // dispatch message to all subscribers
           for (int i = 0; i < subscription->count_subscribed; i++)
@@ -73,7 +74,7 @@ my_message_callback(struct mosquitto *mosq, void *userdata,
     }
 }
 
-void
+static void
 my_connect_callback(struct mosquitto *mosq, void *userdata, int result)
 {
   if (!result)
@@ -82,7 +83,7 @@ my_connect_callback(struct mosquitto *mosq, void *userdata, int result)
     llog(LOG_ERR, "MQTT: connection failed.\n");
 }
 
-void
+static void
 my_subscribe_callback(struct mosquitto *mosq, void *userdata, int mid,
     int qos_count, const int *granted_qos)
 {
@@ -94,7 +95,7 @@ my_subscribe_callback(struct mosquitto *mosq, void *userdata, int mid,
   printf("\n");
 }
 
-void
+static void
 my_log_callback(struct mosquitto *mosq, void *userdata, int level,
     const char *str)
 {
@@ -132,17 +133,20 @@ main(const int argc, const char *argv[])
       return -1;
     }
 
-  MOSQUITTO = initialize_mqtt_context(id);
-  if (!MOSQUITTO)
-    {
-      llog(LOG_ERR, "Failed to initialize mosquitto context\n");
-      return -1;
-      /* TODO if this is a connection error try to reconnect */
-    }
+  MessageQueue queue;
+  if (!MessageQueue_new(&queue, id))
+      llog(LOG_ERR, "Failed to create the MessageQueue.\n");
+
+  queue.on_message = my_message_callback;
+  queue.on_connect = my_connect_callback;
+  queue.on_log = my_log_callback;
+  queue.on_subscribe = my_subscribe_callback;
+
+  MessageQueue_connect(&queue);
+  MOSQUITTO = queue.queue;
 
   llog(LOG_INFO, "Starting server\n");
 
-  int reconnect_attempts = 0;
   for (;;)
     {
 #ifdef EXTERNAL_POLL
@@ -169,30 +173,12 @@ main(const int argc, const char *argv[])
 #else
       libwebsocket_service(WEBSOCKETS, EVENT_LOOP_TIMEOUT);
 #endif
-      int rc = mosquitto_loop(MOSQUITTO, EVENT_LOOP_TIMEOUT, 1);
-      if (rc == MOSQ_ERR_SUCCESS)
-        reconnect_attempts = 0;
-      else
-        {
-          if (rc == MOSQ_ERR_CONN_LOST || rc == MOSQ_ERR_CONN_REFUSED
-              || rc == MOSQ_ERR_NO_CONN)
-            {
-              if (reconnect_attempts == 0)
-                llog(LOG_WARNING, "Mosquitto trying reconnect: %s\n",
-                    mosquitto_strerror(rc));
-              mosquitto_reconnect(MOSQUITTO);
-              reconnect_attempts++;
-            }
-          else
-            llog(LOG_ERR, "Error in mosquitto event loop: %s\n",
-                mosquitto_strerror(rc));
-        }
+      MessageQueue_run(&queue, EVENT_LOOP_TIMEOUT);
     }
 
   libwebsocket_context_destroy(WEBSOCKETS);
   lwsl_notice("Server Shutdown down\n");
-  mosquitto_destroy(MOSQUITTO);
-  mosquitto_lib_cleanup();
+  MessageQueue_free(&queue);
   subscriptions_destroy(&SUBSCRIPTIONS);
   return 0;
 }
