@@ -1,5 +1,5 @@
 describe("message subscription", function() {
-	it("should receive published message for topic", function() {
+	it("should receive response for request", function() {
 
 		var socket = new WebSocket('ws://127.0.0.1:8080/', ['mqtt-bridge-protocol']);
 		var received_message;
@@ -16,7 +16,7 @@ describe("message subscription", function() {
 		
 		waitsFor(function() {
 			return received_message;
-		}, "Message should have been received", 2000);
+		}, "Message should have been received", 500);
 
 		runs(function() {
 			expect(received_message).toEqual("PUBLISH _RPC/out/xxx/xxx/echo/echo\n" + "hello world");

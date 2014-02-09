@@ -15,7 +15,7 @@ describe("message subscription", function() {
 		
 		waitsFor(function() {
 			return received_message;
-		}, "Message should have been received", 2000);
+		}, "Message should have been received", 500);
 
 		runs(function() {
 			expect(received_message).toEqual("PUBLISH /foo/bar\nhello world");
