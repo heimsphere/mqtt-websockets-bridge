@@ -12,6 +12,17 @@ var MQTT = (function() {
 		this.url = url;
 		this.connect();
 	}
+
+	// see http://stackoverflow.com/questions/4152931/javascript-inheritance-call-super-constructor-or-use-prototype-chain
+
+	function extend(parent, child) {
+		// clone Channel without executing the constructor 
+		var clone = function() {};
+		clone.prototype = parent.prototype;
+		child.prototype = new clone();
+		child.prototype.constructor = child;
+	}
+
 	Connection.prototype = new EventEmitter();
 
 	Connection.prototype.connect = function() {
@@ -77,6 +88,7 @@ var MQTT = (function() {
 			}
 		});
 	}
+
 	Channel.prototype = new EventEmitter();
 
 	Channel.prototype.push = function(data) {
@@ -85,7 +97,6 @@ var MQTT = (function() {
 		} else {
 			throw new Error("Can't push empty message to queue " + this.topic);
 		}
-
 	};
 
 	Channel.prototype.subscribe = function() {
@@ -96,6 +107,17 @@ var MQTT = (function() {
 	Channel.prototype.unsubscribe = function() {
 		this.connection.send("unsubscribe", this.topic);
 		this.subscribed = false;
+	};
+
+	function Service(connection, service) {
+		// execute the super constructor
+		Channel.call(this, connection, service);
+	}
+
+	extend(Channel, Service);
+
+	Connection.prototype.service = function(name) {
+		return new Service(this, name);
 	};
 
 	function connect(url, callback) {
