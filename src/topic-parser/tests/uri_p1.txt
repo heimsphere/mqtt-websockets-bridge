@@ -1,0 +1,1 @@
+rpc:/mpd/player/some/other/path/#myfragment?client=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
