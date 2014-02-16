@@ -18,7 +18,7 @@ describe("message subscription", function() {
 		}, "Message should have been received", 500);
 
 		runs(function() {
-			expect(received_message).toEqual("PUBLISH /foo/bar\nhello world");
+			expect(received_message).toEqual("/foo/bar\nhello world");
 		});
 	});
 });

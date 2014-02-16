@@ -5,13 +5,11 @@ describe("message subscription", function() {
 		var received_message;
 
 		socket.onmessage = function(event) {
-			console.log(event.data);
 			received_message = event.data;
 		}
 
-		socket.onopen = function() {
-			socket.send('SUBSCRIBE _RPC/out/xxx/xxx/echo/echo');
-			socket.send('PUBLISH _RPC/in/xxx/xxx/echo/echo\n' + 'hello world');
+		socket.onopen = function() {			
+			socket.send('PUBLISH /echo/echo\n\n' + 'hello world');
 		};
 		
 		waitsFor(function() {
@@ -19,7 +17,7 @@ describe("message subscription", function() {
 		}, "Message should have been received", 500);
 
 		runs(function() {
-			expect(received_message).toEqual("PUBLISH _RPC/out/xxx/xxx/echo/echo\n" + "hello world");
+			expect(received_message).toEqual("hello world");
 		});
 	});
 });
