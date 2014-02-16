@@ -1,28 +1,26 @@
-LIBWS_PATH=`brew --prefix libwebsockets`
-LIBEV_PATH=`brew --prefix libev`
-MOSQUITTO_PATH=`brew --prefix mosquitto`
-SRC=llog.c subscriber.c ws.c mqtt.c bridge.c message.c
+SUBDIRS=message-parser topic-parser services
+SUBDIRS_CLEAN = $(patsubst %,%.clean,$(SUBDIRS))
+OBJ=llog.o subscriber.o ws.o mqtt.o message.o bridge.o
+CFLAGS += -g -pedantic -Wall -DEXTERNAL_POLL
+LDFLAGS = -lwebsockets -lmosquitto
 
-ALL=bridge echo_service
-
-default: $(ALL)
-
-clean:
-	rm -f $(ALL)
-
-format:
-	uncrustify -c ../uncrustify.linux.cfg --replace *.c
+default: all
 	
-memcheck:
-	leaks `pidof bridge`
+bridge: $(OBJ)
 
+.PHONY: clean
+clean:
+	rm -f *.o bridge
 
-bridge: clean
-	gcc -g -pedantic -Wall -o bridge $(SRC) \
-		-DEXTERNAL_POLL \
-		-I$(LIBWS_PATH)/include/ -L$(LIBWS_PATH)/lib -lwebsockets \
-		-I$(MOSQUITTO_PATH)/include/ -L$(MOSQUITTO_PATH)/lib -lmosquitto
+.PHONY: all
+all: bridge $(SUBDIRS)
 
-echo_service: clean
-	gcc -g -pedantic -Wall -o echo_service mqtt.c llog.c echo_service.c \
-		-I$(MOSQUITTO_PATH)/include/ -L$(MOSQUITTO_PATH)/lib -lmosquitto
+.PHONY: cleanall    
+cleanall: clean $(SUBDIRS_CLEAN)
+ 
+ .PHONY: $(SUBDIRS)
+$(SUBDIRS):
+	$(MAKE) -C $@
+
+%.clean:
+	$(MAKE) -C $(@:.clean=) clean
