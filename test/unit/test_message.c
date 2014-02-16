@@ -1,6 +1,6 @@
 #include "unity_fixture.h" 
 #include <stdio.h>
-#include "../src/message.h"
+#include "message.h"
 
 TEST_GROUP(message);
 

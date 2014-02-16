@@ -1,6 +1,6 @@
 #include "unity_fixture.h" 
 #include <stdio.h>
-#include "../src/subscriber.h"
+#include "subscriber.h"
 
 TEST_GROUP(subscriber);
 
