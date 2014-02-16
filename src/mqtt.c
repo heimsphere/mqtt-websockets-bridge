@@ -54,24 +54,8 @@ MessageQueue_free(MessageQueue *queue)
 }
 
 void
-MessageQueue_run(MessageQueue *queue, int timeout)
+MessageQueue_run(MessageQueue* queue, int timeout)
 {
   int rc = mosquitto_loop(queue->queue, timeout, 1);
-  if (rc == MOSQ_ERR_SUCCESS)
-    queue->reconnect_attempts = 0;
-  else
-    {
-      if (rc == MOSQ_ERR_CONN_LOST || rc == MOSQ_ERR_CONN_REFUSED
-          || rc == MOSQ_ERR_NO_CONN)
-        {
-          if (queue->reconnect_attempts == 0)
-            llog(LOG_WARNING, "Mosquitto trying reconnect: %s\n",
-                mosquitto_strerror(rc));
-          mosquitto_reconnect(queue->queue);
-          queue->reconnect_attempts++;
-        }
-      else
-        llog(LOG_ERR, "Error in mosquitto event loop: %s\n",
-            mosquitto_strerror(rc));
-    }
+
 }

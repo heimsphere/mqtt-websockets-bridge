@@ -4,3 +4,6 @@
 src/bridge
 bower_components
 src/echo_service
+*.o
+doc/xml
+doc/api

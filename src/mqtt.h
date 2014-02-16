@@ -43,4 +43,4 @@ void
 MessageQueue_free(MessageQueue *queue);
 
 void
-MessageQueue_run(MessageQueue *queue, int timeout);
+MessageQueue_run(MessageQueue* queue, int timeout);
