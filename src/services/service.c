@@ -1,4 +1,5 @@
 #include "service.h"
+#include <uuid.h>
 
 static void
 connect_callback(struct mosquitto *mosq, void *userdata, int result)
@@ -26,8 +27,19 @@ message_callback(struct mosquitto *mosq, void *userdata,
 void
 MessageService_new(MessageService *service, char *id)
 {
-  service->id = id;
-  MessageQueue_new(&(service->queue));
+  MessageQueue_new(&(service->queue), id);
   service->queue.on_connect = connect_callback;
   service->queue.on_message = message_callback;
 }
+
+//int main(int argc, char **argv)
+//{
+//  MessageQueue queue;
+//  MessageQueue_new(&queue, "echo");
+////  queue.on_message = my_message_callback;
+////  queue.on_connect = my_connect_callback;
+//  MessageQueue_connect(&queue);
+//  for(;;)
+//    MessageQueue_run(&queue, 1000);
+//  MessageQueue_free(&queue);
+//}
