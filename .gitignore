@@ -1,10 +1,12 @@
 *~
 .cproject
 .project
-src/bridge
 bower_components
-src/echo_service
-*.o
 doc/xml
 doc/api
+
+# compiled binaries
+*.o
+src/bridge
 src/services/echo/echo_service
+src/services/mpd/mpd-mqtt-client
