@@ -2,10 +2,15 @@
  * Javascript API for MQTT websockets bridge
  */
 var MQTT = (function() {
-	var MESSAGE_FORMAT = /(\w+) ([^\n]+)\n(.*)/,
-		MESSAGE_COMMAND = 1,
-		MESSAGE_TOPIC = 2,
-		MESSAGE_BODY = 3;
+	var MESSAGE_FORMAT = /([^\n]+)\n(.*)/,
+		MESSAGE_TOPIC = 1,
+		MESSAGE_BODY = 2;
+
+	var REQUEST_TOPIC = /(RPC\/[^/]+)\/(.*)/,
+		REQUEST_SERVICE = 1,
+		REQUEST_PATH = 2;
+		
+	var RPC_PREFIX = 'RPC/';
 
 	function Connection(url) {
 		EventEmitter.call(this);
@@ -36,13 +41,15 @@ var MQTT = (function() {
 			var match = event.data.match(MESSAGE_FORMAT);
 
 			if (match) {
-				switch (match[MESSAGE_COMMAND]) {
-					case 'PUBLISH':
-						that.emit(match[MESSAGE_TOPIC], match[MESSAGE_BODY]);
-						break;
-					default:
-						console.log("Got unkown command: " + event.data);
-						break;
+				var topic = match[MESSAGE_TOPIC];
+				var body = match[MESSAGE_BODY];
+				var topic_match = topic.match(REQUEST_TOPIC);
+				if (topic_match) {
+					var service = topic_match[REQUEST_SERVICE];
+					var service_path = topic_match[REQUEST_PATH];
+					that.emit(service, service_path, body);
+				} else {
+					that.emit(topic, topic, body);
 				}
 			} else {
 				console.error("Got unknown message: " + event.data);
@@ -78,8 +85,8 @@ var MQTT = (function() {
 		this.connection = connection;
 		this.topic = topic;
 		this.subscribed = false;
-		this.connection.on(this.topic, function(data) {
-			that.emit('data', data);
+		this.connection.on(topic, function(path, data) {
+			that.emit(path, data);
 		});
 		this.connection.on('connect', function() {
 			// resubscribe if connection was lost
@@ -109,12 +116,22 @@ var MQTT = (function() {
 		this.subscribed = false;
 	};
 
-	function Service(connection, service) {
+	function Service(connection, topic) {
 		// execute the super constructor
-		Channel.call(this, connection, service);
+		Channel.call(this, connection, RPC_PREFIX + topic);
+	}
+	Service.prototype = Object.create(Channel.prototype);
+	Service.prototype.constructor = Service;
+	// extend(Channel, Service);
+
+	Service.prototype.subscribe = function() {
+		this.connection.send("subscribe", this.topic + "/#");
+		this.subscribed = true;
 	}
 
-	extend(Channel, Service);
+	Service.prototype.request = function(data, callback) {
+		this.connection.send("request", this.topic, data);
+	};
 
 	Connection.prototype.service = function(name) {
 		return new Service(this, name);
