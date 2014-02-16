@@ -4,17 +4,18 @@
 static void
 echo(MessageService *service, Message *message)
 {
-  reply(message, message->data);
+	reply(message, message->data);
 }
 
 static void
 clock(MessageService *service, Message *message)
 {
-  char date[100];
-  time_t now = time(NULL);
-  struct tm *t = localtime(&now);
-  strftime(date, sizeof(date)-1, "%d %m %Y %H:%M", t);
-  reply(message, date);
+	char date[100];
+	time_t now = time(NULL);
+	struct tm *t = localtime(&now);
+
+	strftime(date, sizeof(date) - 1, "%d %m %Y %H:%M", t);
+	reply(message, date);
 }
 
 //int main(int argc, char **argv)

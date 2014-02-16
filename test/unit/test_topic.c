@@ -14,17 +14,21 @@ TEST_TEAR_DOWN(topic)
 
 }
 
-assert_subscribed(const char *topic, const char *subscription) {
+assert_subscribed(const char *topic, const char *subscription)
+{
 	bool result = false;
+
 	TEST_ASSERT_EQUAL(MOSQ_ERR_SUCCESS,
-		mosquitto_topic_matches_sub(subscription, topic, &result));
+			  mosquitto_topic_matches_sub(subscription, topic, &result));
 	TEST_ASSERT_TRUE(result);
 }
 
-assert_not_subscribed(const char *topic, const char *subscription) {
+assert_not_subscribed(const char *topic, const char *subscription)
+{
 	bool result = true;
+
 	TEST_ASSERT_EQUAL(MOSQ_ERR_SUCCESS,
-		mosquitto_topic_matches_sub(subscription, topic, &result));
+			  mosquitto_topic_matches_sub(subscription, topic, &result));
 	TEST_ASSERT_FALSE(result);
 }
 
@@ -82,21 +86,22 @@ TEST(topic, NotMatchesMixedWildcardSubscription)
 	assert_not_subscribed("/foo/111/bar/baz/222/", "/foo/+/bar/baz/+/blub/#");
 }
 
-TEST(topic, CaseSensitiveSubscription) {
+TEST(topic, CaseSensitiveSubscription)
+{
 	assert_subscribed("Foo", "Foo");
 	assert_not_subscribed("foo", "Foo");
 	assert_not_subscribed("Foo", "foo");
 }
 
 TEST_GROUP_RUNNER(topic)
-{ 
-    RUN_TEST_CASE(topic, EqualsSubscription);
-    RUN_TEST_CASE(topic, NotEqualsSubscription);
-    RUN_TEST_CASE(topic, MatchesWildcardSubscription);
-    RUN_TEST_CASE(topic, NotMatchesWildcardSubscription);
-    RUN_TEST_CASE(topic, MatchesMultilevelWildcardSubscription);
-    RUN_TEST_CASE(topic, NotMatchesMultilevelWildcardSubscription);
-    RUN_TEST_CASE(topic, MatchesMixedWildcardSubscription);
-    RUN_TEST_CASE(topic, NotMatchesMixedWildcardSubscription);
-    RUN_TEST_CASE(topic, CaseSensitiveSubscription);
+{
+	RUN_TEST_CASE(topic, EqualsSubscription);
+	RUN_TEST_CASE(topic, NotEqualsSubscription);
+	RUN_TEST_CASE(topic, MatchesWildcardSubscription);
+	RUN_TEST_CASE(topic, NotMatchesWildcardSubscription);
+	RUN_TEST_CASE(topic, MatchesMultilevelWildcardSubscription);
+	RUN_TEST_CASE(topic, NotMatchesMultilevelWildcardSubscription);
+	RUN_TEST_CASE(topic, MatchesMixedWildcardSubscription);
+	RUN_TEST_CASE(topic, NotMatchesMixedWildcardSubscription);
+	RUN_TEST_CASE(topic, CaseSensitiveSubscription);
 }
