@@ -43,23 +43,35 @@ endif
 # -- recursive tasks (all / cleanall)
 CLEAN_FILES += *.dSYM
 
-.PHONY: clean
-clean: cleanall
-	rm -rf $(BIN) $(OBJS) $(CLEAN_FILES)
-
 .PHONY: all
 all: $(BIN) $(SUBDIRS)
-
-.PHONY: cleanall
-cleanall: $(patsubst %,%.clean,$(SUBDIRS))
-
+	
 .PHONY: $(SUBDIRS)
 $(SUBDIRS): $(OBJS)
 	$(MAKE) -C $@
 
+# -- recursive clean
+
+.PHONY: clean
+clean: clean-all
+	rm -rf $(BIN) $(OBJS) $(CLEAN_FILES)
+
 %.clean:
 	$(MAKE) -C $(@:.clean=) clean
-	
-format:
-	uncrustify -c $(CURDIR)/uncrustify.linux.cfg --replace *.c
+
+.PHONY: clean-all
+clean-all: $(patsubst %,%.clean,$(SUBDIRS))
+
+# -- recursive format
+
+format: format-all
+	uncrustify -c $(SELF_DIR)uncrustify.linux.cfg --replace *.c
+
+.PHONY: format-all
+format-all: $(patsubst %,%.format,$(SUBDIRS))	
+
+%.format:
+	$(MAKE) -C $(@:.format=) format
+
+
 	

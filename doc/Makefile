@@ -12,3 +12,5 @@ apidoc:
 clean:
 	rm -rf api xml
 	
+format-all:
+
