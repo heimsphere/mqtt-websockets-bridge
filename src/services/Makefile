@@ -1,13 +1,5 @@
-SUBDIRS: echo mpd
+LDFLAGS += -luuid
+SUBDIRS = echo mpd
+OBJS = service.o
 
-.PHONY: subdirs $(SUBDIRS) 
-subdirs: $(SUBDIRS)
-     
-$(SUBDIRS):
-	$(MAKE) -C $@
-	
-default: service.o $(SUBDIRS)
-
-.PHONY: clean
-clean:
-	rm -f *.o
+include ../../make.defs

@@ -1,4 +1,6 @@
-echo_service: clean
-        $(CC) -g -pedantic -Wall -o echo_service mqtt.c llog.c echo_service.c \
-                -I$(MOSQUITTO_PATH)/include/ -L$(MOSQUITTO_PATH)/lib -lmosquitto
-                
+CFLAGS += -g -pedantic -Wall
+LDFLAGS += -lmosquitto -luuid
+OBJS = echo_resource.o echo_service.o ../../mqtt.o ../../llog.o ../service.o 
+BIN = echo_service
+
+include ../../../make.defs

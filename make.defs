@@ -1,0 +1,65 @@
+default: all
+	
+SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+CFLAGS += -I$(SELF_DIR)include
+
+ifneq ($(strip $(BIN)),)
+$(BIN): $(OBJS)
+
+.PHONY: leakcheck
+leakcheck: $(BIN)
+	leaks $(pidof $(BIN))
+endif
+
+## --- SYSTEM
+# system dependent settings
+# consider using automake for that
+
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Darwin)
+ifeq ($(DEBUG), true)
+CFLAGS += -gdwarf-2 -g -O0
+endif
+LIBUUID_PREFIX=$(shell brew --prefix ossp-uuid)
+CFLAGS += -I$(LIBUUID_PREFIX)/include
+LDFLAGS += -L$(LIBUUID_PREFIX)/lib
+endif
+
+## -- end SYSTEM
+
+# pattern rules
+# see https://www.gnu.org/software/make/manual/html_node/Pattern-Rules.html#Pattern-Rules
+
+%.dot : %.rl
+	ragel -V -p -o $@ $<
+
+%.png : %.dot
+	dot -Tpng $< -o $@
+
+%.c : %.rl
+	ragel -o $@ $<
+
+# -- recursive tasks (all / cleanall)
+CLEAN_FILES += *.dSYM
+
+.PHONY: clean
+clean: cleanall
+	rm -rf $(BIN) $(OBJS) $(CLEAN_FILES)
+
+.PHONY: all
+all: $(BIN) $(SUBDIRS)
+
+.PHONY: cleanall
+cleanall: $(patsubst %,%.clean,$(SUBDIRS))
+
+.PHONY: $(SUBDIRS)
+$(SUBDIRS): $(OBJS)
+	$(MAKE) -C $@
+
+%.clean:
+	$(MAKE) -C $(@:.clean=) clean
+	
+format:
+	uncrustify -c $(CURDIR)/uncrustify.linux.cfg --replace *.c
+	

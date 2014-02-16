@@ -7,3 +7,4 @@ src/echo_service
 *.o
 doc/xml
 doc/api
+src/services/echo/echo_service
