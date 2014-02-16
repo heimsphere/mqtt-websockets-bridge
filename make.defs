@@ -1,7 +1,7 @@
 default: all
 	
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
-CFLAGS += -I$(SELF_DIR)include
+CFLAGS += -I$(SELF_DIR)include -g -pedantic -Wall
 
 ifneq ($(strip $(BIN)),)
 $(BIN): $(OBJS)

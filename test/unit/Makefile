@@ -1,4 +1,5 @@
-# see http://www.gnu.org/software/make/manual/html_node/Include.html
+default: run
+
 -include Make.conf
 
 # Specify your preferred editor which should open a new test file/group.
@@ -23,8 +24,6 @@ UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 	CFLAGS += -gdwarf-2 -g -O0
 endif
-
-default: run
 
 # Execute test runner after compilation
 run: $(TEST_RUNNER)

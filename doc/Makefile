@@ -11,6 +11,6 @@ apidoc:
 .PHONY: clean
 clean:
 	rm -rf api xml
-	
-format-all:
+
+format:
 
